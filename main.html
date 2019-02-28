@@ -1,0 +1,110 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div id="app">
+        <h1><p style="text-align:center">Analysis of the Number of Employees</p></h1>
+        <br>
+        <h5>Add new Employee:</h5><br>
+        <form class="form-inline">
+            <div class="form-group">
+                <label for="usr">Employee name:</label>&nbsp;
+                <input v-model="Employee" type="text" class="form-control" id="usr" required="required">
+                &nbsp;&nbsp;
+                <label for="sel1">Company:</label>
+                &nbsp;
+                <select v-model="companyname" class="form-control" id="sel1" required="required">
+                    <option>Amazon</option>
+                    <option>Apple</option>
+                    <option>Facebook</option>
+                    <option>Google</option>
+                </select>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <button type="submit" class="btn btn-primary" v-on:click="send">Submit</button>
+            </div>
+        </form>
+        <canvas id="myChart" style="height: 250px; width: 100%;"></canvas>
+    </div>
+
+</body>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: 'Hello Vue!',
+            chartData: [],
+            companyname: '',
+            Employee: '',
+        },
+        methods: {
+            send: function () {
+                if (this.Employee != '' && this.companyname != '') {
+                    axios.post("http://127.0.0.1:5000/insertData", {
+                        employeName: this.Employee,
+                        company: this.companyname,
+                    }).then(location.reload(true))
+                }
+            },
+            generateChart: function (chartd) {
+                new Chart(document.getElementById("myChart"), {
+                    type: 'bar',
+                    data: {
+                        labels: ["Amazon", "Apple", "Facebook", "Google"],
+                        datasets: [
+                            {
+                                label: "#Employees",
+                                backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9"],
+                                data: chartd
+                            }
+                        ]
+                    },
+                    // maintainAspectRatio: false,
+                    options: {
+                        responsive: true,
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Number of Employees'
+                        },
+                        scales: {
+                            yAxes: [
+                            {
+                                ticks: {
+                                    beginAtZero: true,
+                                    // min: 0
+                                }
+                            }
+                        ]
+                        
+                        }
+                    }
+                });
+            },
+            getData: function () {
+                axios
+                    .get("http://127.0.0.1:5000/")
+                    .then(response => {
+                        this.chartData = response.data,
+                            l = []
+                        l.push(this.chartData['Amazon'])
+                        l.push(this.chartData['Apple'])
+                        l.push(this.chartData['Facebook'])
+                        l.push(this.chartData['Google'])
+                        this.chartData = l
+                        this.generateChart(this.chartData)
+                    })
+            }
+        },
+        mounted() {
+            this.getData()
+        },
+    })
+</script>
+
+</html>
